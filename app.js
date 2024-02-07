@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
+const methodOverride = require("method-override");
 const Campground = require("./models/campground");
 
 mongoose.connect("mongodb://127.0.0.1:27017/yelp-camp");
@@ -16,19 +17,63 @@ const app = express();
 //EJS
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride("_method"));
 // ********************************************* //
 
 app.get("/", (req, res) => {
   res.render("home");
 });
 
-app.get("/makecampground", async (req, res) => {
-  const camp = new Campground({
-    title: "My Backyard",
-    description: "Cheap camping!",
+// Index
+app.get("/campgrounds", async (req, res) => {
+  const campgrounds = await Campground.find({});
+  res.render("campgrounds/index", { campgrounds });
+});
+
+// Order matters here
+app.get("/campgrounds/new", (req, res) => {
+  res.render("campgrounds/new");
+});
+
+// Create
+app.post("/campgrounds", async (req, res) => {
+  const campground = new Campground(req.body.campground);
+  await campground.save();
+  res.redirect(`/campgrounds/${campground._id}`);
+});
+
+// Show
+app.get("/campgrounds/:id", async (req, res) => {
+  const campground = await Campground.findById(req.params.id);
+  res.render("campgrounds/show", { campground });
+});
+
+// Update
+app.get("/campgrounds/:id/edit", async (req, res) => {
+  const campground = await Campground.findById(req.params.id);
+  res.render("campgrounds/edit", { campground });
+});
+
+// Update PUT request
+app.put("/campgrounds/:id", async (req, res) => {
+  const { id } = req.params;
+  // Spread operator, spread the req.body.campground object into this new object
+  const campground = await Campground.findByIdAndUpdate(id, {
+    ...req.body.campground,
   });
-  await camp.save();
-  res.send(camp);
+  res.redirect(`/campgrounds/${campground._id}`);
+});
+
+// Delete
+// Form button sends a delete request
+// Form sends a POST request to the URL below
+// Fake out express to think it's a DELETE request because M.O.
+app.delete("/campgrounds/:id", async (req, res) => {
+  const { id } = req.params;
+  await Campground.findByIdAndDelete(id);
+  res.redirect("/campgrounds");
 });
 
 // ********************************************* //
