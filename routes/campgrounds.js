@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const catchAsync = require("../utils/catchAsync");
 const { campgroundSchema } = require("../schemas.js");
+const { isLoggedIn } = require("../middleware.js");
 
 const ExpressError = require("../utils/ExpressError");
 const Campground = require("../models/campground");
@@ -29,13 +30,14 @@ router.get(
 );
 
 // Order matters here
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
   res.render("campgrounds/new");
 });
 
 // Create
 router.post(
   "/",
+  isLoggedIn,
   // Middleware schema validation:
   validateCampground,
   catchAsync(async (req, res, next) => {
@@ -70,6 +72,7 @@ router.get(
 // Update
 router.get(
   "/:id/edit",
+  isLoggedIn,
   catchAsync(async (req, res, next) => {
     const campground = await Campground.findById(req.params.id);
     if (!campground) {
@@ -83,6 +86,7 @@ router.get(
 // Update PUT request
 router.put(
   "/:id",
+  isLoggedIn,
   // Middleware schema validation:
   validateCampground,
   catchAsync(async (req, res, next) => {
@@ -102,6 +106,7 @@ router.put(
 // Fake out express to think it's a DELETE request because M.O.
 router.delete(
   "/:id",
+  isLoggedIn,
   catchAsync(async (req, res, next) => {
     const { id } = req.params;
     await Campground.findByIdAndDelete(id);

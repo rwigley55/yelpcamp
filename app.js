@@ -62,6 +62,9 @@ passport.deserializeUser(User.deserializeUser());
 // Middleware, locals.success is now available on every request
 // no need to pass anything to templates
 app.use((req, res, next) => {
+  // req.user is auto added from Passport, contains deserialized info from the session
+  // all templates now have access to "currentUser", which is req.user
+  res.locals.currentUser = req.user;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
