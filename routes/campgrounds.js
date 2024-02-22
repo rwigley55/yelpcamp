@@ -10,23 +10,35 @@ const {
 
 const Campground = require("../models/campground");
 
-// Index
-router.get("/", catchAsync(campgrounds.index));
+router
+  .route("/")
+  // Index
+  .get(catchAsync(campgrounds.index))
+  // Create
+  .post(
+    isLoggedIn,
+    // Middleware schema validation:
+    validateCampground,
+    catchAsync(campgrounds.createCampground)
+  );
 
-// Order matters here
+// Order matters here - needs to go before :id, otherwise thinks "new" is an ID
 router.get("/new", isLoggedIn, campgrounds.renderNewForm);
 
-// Create
-router.post(
-  "/",
-  isLoggedIn,
-  // Middleware schema validation:
-  validateCampground,
-  catchAsync(campgrounds.createCampground)
-);
-
-// Show
-router.get("/:id", catchAsync(campgrounds.showCampground));
+router
+  .route("/:id")
+  // Show
+  .get(catchAsync(campgrounds.showCampground))
+  // Update PUT request
+  .put(
+    isLoggedIn,
+    isAuthor,
+    // Middleware schema validation:
+    validateCampground,
+    catchAsync(campgrounds.updateCampground)
+  )
+  // Delete
+  .delete(isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
 
 // Update
 router.get(
@@ -34,24 +46,6 @@ router.get(
   isLoggedIn,
   isAuthor,
   catchAsync(campgrounds.renderEditForm)
-);
-
-// Update PUT request
-router.put(
-  "/:id",
-  isLoggedIn,
-  isAuthor,
-  // Middleware schema validation:
-  validateCampground,
-  catchAsync(campgrounds.updateCampground)
-);
-
-// Delete
-router.delete(
-  "/:id",
-  isLoggedIn,
-  isAuthor,
-  catchAsync(campgrounds.deleteCampground)
 );
 
 module.exports = router;

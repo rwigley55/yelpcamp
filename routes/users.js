@@ -6,24 +6,25 @@ const User = require("../models/user");
 const { storeReturnTo } = require("../middleware");
 const users = require("../controllers/users");
 
-router.get("/register", users.renderRegister);
+router
+  .route("/register")
+  .get(users.renderRegister)
+  .post(catchAsync(users.register));
 
-router.post("/register", catchAsync(users.register));
-
-router.get("/login", users.renderLogin);
-
-router.post(
-  "/login",
-  // use the storeReturnTo middleware to save the returnTo value from session to res.locals
-  // import to use this middleware before passport.authenticate
-  storeReturnTo,
-  // passport.authenticate logs the user in and clears req.session
-  passport.authenticate("local", {
-    failureFlash: true,
-    failureRedirect: "/login",
-  }),
-  users.login
-);
+router
+  .route("/login")
+  .get(users.renderLogin)
+  .post(
+    // use the storeReturnTo middleware to save the returnTo value from session to res.locals
+    // import to use this middleware before passport.authenticate
+    storeReturnTo,
+    // passport.authenticate logs the user in and clears req.session
+    passport.authenticate("local", {
+      failureFlash: true,
+      failureRedirect: "/login",
+    }),
+    users.login
+  );
 
 // Passport adds .logout() method to our req object
 router.get("/logout", users.logout);
