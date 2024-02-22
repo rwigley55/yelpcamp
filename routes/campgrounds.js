@@ -7,6 +7,9 @@ const {
   isAuthor,
   validateCampground,
 } = require("../middleware.js");
+const multer = require("multer");
+const { storage } = require("../cloudinary");
+const upload = multer({ storage });
 
 const Campground = require("../models/campground");
 
@@ -17,6 +20,8 @@ router
   // Create
   .post(
     isLoggedIn,
+    // Multer is looking for the form data input named "image"
+    upload.array("image"),
     // Middleware schema validation:
     validateCampground,
     catchAsync(campgrounds.createCampground)
@@ -33,6 +38,8 @@ router
   .put(
     isLoggedIn,
     isAuthor,
+    // Multer is looking for the form data input named "image"
+    upload.array("image"),
     // Middleware schema validation:
     validateCampground,
     catchAsync(campgrounds.updateCampground)
