@@ -1,4 +1,7 @@
 const Campground = require("../models/campground");
+const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
+const mapBoxToken = process.env.MAPBOX_TOKEN;
+const geocoder = mbxGeocoding({ accessToken: mapBoxToken });
 const { cloudinary } = require("../cloudinary");
 
 module.exports.index = async (req, res, next) => {
@@ -11,7 +14,15 @@ module.exports.renderNewForm = (req, res) => {
 };
 
 module.exports.createCampground = async (req, res, next) => {
+  const geoData = await geocoder
+    .forwardGeocode({
+      query: req.body.campground.location,
+      limit: 1,
+    })
+    .send();
+
   const campground = new Campground(req.body.campground);
+  campground.geometry = geoData.body.features[0].geometry;
   // map over the array that's been added to req.files
   // take the path and filename, make a new object for each one
   // put that in an array, array length is however many images were uploaded
