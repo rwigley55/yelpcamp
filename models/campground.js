@@ -12,35 +12,48 @@ ImageSchema.virtual("thumbnail").get(function () {
   return this.url.replace("/upload", "/upload/w_200");
 });
 
-const CampgroundSchema = new Schema({
-  title: String,
-  images: [ImageSchema],
-  geometry: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
+// Set virtuals to be true, pass it into the Schema
+const opts = { toJSON: { virtuals: true } };
+
+const CampgroundSchema = new Schema(
+  {
+    title: String,
+    images: [ImageSchema],
+    geometry: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+      },
     },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
-  },
-  price: Number,
-  description: String,
-  location: String,
-  author: {
-    type: Schema.Types.ObjectId,
-    // reference to a User instance
-    ref: "User",
-  },
-  reviews: [
-    {
-      // ObjectId from the Review Model
+    price: Number,
+    description: String,
+    location: String,
+    author: {
       type: Schema.Types.ObjectId,
-      ref: "Review",
+      // reference to a User instance
+      ref: "User",
     },
-  ],
+    reviews: [
+      {
+        // ObjectId from the Review Model
+        type: Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
+  },
+  opts
+);
+
+// Virtual Property on CampgroundSchema
+CampgroundSchema.virtual("properties.popUpMarkup").get(function () {
+  return `
+  <strong><a href="/campgrounds/${this._id}">${this.title}</a></strong>
+  <p>${this.description.substring(0, 30)}...</p>`;
 });
 
 // query middleware
